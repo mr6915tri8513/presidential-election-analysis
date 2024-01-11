@@ -41,13 +41,13 @@ app.post("/api/search_poll",(req,res)=>{
   const village = req.body.village;
 
   if (village != 0) {
-    pool.query(`select total, president, vicepresident, party from from ( `+
+    pool.query(`select total, president, vicePresident, party from from ( `+
                `SELECT year, team, sum(poll_count) as total FROM Polls `+
                `WHERE station_id = ${village} `+ 
                `GROUP BY team `+
                `) as sub `+
                `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 0 as president `+
-               `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 1 as vicepresident `+
+               `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 1 as vicePresident `+
                `join Parties.name on president.party_id = Parties.party_id;`
                ,
       (err, result) => {
@@ -56,7 +56,7 @@ app.post("/api/search_poll",(req,res)=>{
       }
     )
   } else if (districtId != 0) {
-    pool.query(`select total, president, vicepresident, party from ( `+
+    pool.query(`select total, president, vicePresident, party from ( `+
                `SELECT year, team, sum(poll_count) as total FROM Polls `+
                `WHERE station_id in ( `+ 
                `SELECT station_id FROM Poll_stations `+
@@ -66,7 +66,7 @@ app.post("/api/search_poll",(req,res)=>{
                `GROUP BY team `+
                `) as sub `+
                `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 0 as president `+
-               `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 1 as vicepresident `+
+               `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 1 as vicePresident `+
                `join Parties.name on president.party_id = Parties.party_id as party;`
                ,
       (err, result) => {
@@ -75,7 +75,7 @@ app.post("/api/search_poll",(req,res)=>{
       }
     )
     } else if (countyId != 0) {
-      pool.query(`select total, president, vicepresident, party from ( `+
+      pool.query(`select total, president, vicePresident, party from ( `+
       `SELECT year, team, sum(poll_count) as total FROM Polls `+
       `WHERE station_id in ( `+ 
       `SELECT station_id FROM Poll_stations `+
@@ -84,7 +84,7 @@ app.post("/api/search_poll",(req,res)=>{
       `GROUP BY team `+
       `) as sub `+
       `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 0 as president `+
-      `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 1 as vicepresident `+
+      `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 1 as vicePresident `+
       `join Parties.name on president.party_id = Parties.party_id as party;`
       ,
       (err, result) => {
@@ -93,12 +93,12 @@ app.post("/api/search_poll",(req,res)=>{
       }
     )
   } else {
-    pool.query(`select total, president, vicepresident, party from ( `+
+    pool.query(`select total, president, vicePresident, party from ( `+
     `SELECT year, team, sum(poll_count) as total FROM Polls `+
     `GROUP BY team `+
     `) as sub `+
     `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 0 as president `+
-    `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 1 as vicepresident `+
+    `join Candidates.name on Candidates.year = sub.year and Candidates.team = sub.team and Candidates.position = 1 as vicePresident `+
     `join Parties.name on president.party_id = Parties.party_id as party;`
     ,
     (err, result) => {
@@ -107,6 +107,43 @@ app.post("/api/search_poll",(req,res)=>{
     }
     )
   }
+
+})
+
+app.post("/api/search_district",(req,res)=>{
+  const countyId = req.body.countyId;
+
+  pool.query(`select distinct * from ( `+
+             `select district_id, district from Poll_stations `+
+             `join Counties.name on Counties.county_id = Poll_stations.county_id as county `+
+             `join Counties.name on Districts.district_id = Poll_stations.district_id as district `+
+             `where county_id = ${countyId} `+
+             `) as sub;`,
+    (err, result) => {
+      if (err) throw err
+      res.send(result)
+    }
+  )
+  
+
+})
+
+app.post("/api/search_village",(req,res)=>{
+  const countyId = req.body.countyId;
+  const districtId = req.body.districtId;
+
+  pool.query(`select distinct * from ( `+
+             `select village from Poll_stations `+
+             `join Counties.name on Counties.county_id = Poll_stations.county_id as county `+
+             `join Counties.name on Districts.district_id = Poll_stations.district_id as district `+
+             `where county_id = ${countyId} `+
+             `where district_id = ${districtId} `+
+             `) as sub;`,
+    (err, result) => {
+      if (err) throw err
+      res.send(result)
+    }
+  )
 
 })
 
