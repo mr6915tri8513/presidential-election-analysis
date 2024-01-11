@@ -30,8 +30,6 @@ app.get("/api/get_district_in_region", (req, res) => {
     if (err) throw err
     res.send(result)
   })
-  console.log('user')
-  res.send("{id: 1, name: 'John Doe'}")
 })
 
 app.post("/api/search_poll",(req,res)=>{

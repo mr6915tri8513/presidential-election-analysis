@@ -1,3 +1,5 @@
-import {InjectionKey} from "vue";
+import type {InjectionKey, Ref} from "vue";
+import type {UserConfig} from "@/data/database";
 
-export const updatePathKey: InjectionKey<(path: string) => void> = Symbol("updatePath");
+export const userConfigKey: InjectionKey<Ref<UserConfig | null | undefined>> =
+  Symbol("updatePath");

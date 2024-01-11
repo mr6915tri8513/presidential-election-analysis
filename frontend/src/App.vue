@@ -2,8 +2,7 @@
   <template v-if="userConfig !== undefined">
     <header>
       <span class="title">歷屆總統大選資料</span>
-      <button @click="">嗨 {{ userConfig?.name ?? '訪客' }}</button>
-      <span class="path">{{ path }}</span>
+      <button @click="toUserPage">嗨 {{ userConfig?.name ?? '訪客' }}</button>
     </header>
     <router-view/>
   </template>
@@ -14,7 +13,6 @@
 import PageLoading from "@/components/PageLoading.vue";
 import router from "@/router";
 import {defineComponent, provide, ref} from "vue";
-import {updatePathKey} from "@/injection_keys";
 import {getUserConfig} from "@/data/database";
 import type {UserConfig} from "@/data/database";
 
@@ -29,17 +27,11 @@ export default defineComponent({
       userConfig.value = config
     })
     
-    function updatePath(newPath: string) {
-      path.value = newPath
-    }
-    
     function toUserPage() {
-      router.push("/user")
+      router.push("/user/")
     }
     
-    provide(updatePathKey, updatePath)
-    
-    return {path, userConfig}
+    return {path, userConfig, toUserPage}
   }
 })
 </script>
@@ -77,21 +69,5 @@ header button {
   padding: 8px 16px;
   cursor: pointer;
   transition: background 0.2s;
-}
-header .path {
-  font-size: 1.5em;
-}
-
-nav {
-
-}
-
-nav a {
-  font-weight: bold;
-  color: #2c3e50;
-}
-
-nav a.router-link-exact-active {
-  color: #42b983;
 }
 </style>
