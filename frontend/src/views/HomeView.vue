@@ -4,8 +4,8 @@
       <span>篩選條件</span>
       <label>
         <select v-model="term">
-          <option v-for="t in [9, 10, 11, 12, 13, 14, 15]" :value="t">
-            第 {{ t }} 屆
+          <option v-for="term in terms" :value="term">
+            第 {{ term }} 屆
           </option>
         </select>
       </label>
@@ -41,7 +41,7 @@
         <th>政黨名稱</th>
         <th>總統參選人</th>
         <th>副總統參選人</th>
-        <th>得票數</th>
+        <th>總得票數</th>
       </tr>
       </thead>
       <tbody>
@@ -54,21 +54,25 @@
       </tbody>
     </table>
     
-    <button class="opinion-poll">
-      參與民調！
+    <button class="opinion-poll" :disabled="userConfig?.voteTeam" @click="toVotePage">
+      {{ userConfig?.voteTeam ? '你已經投過票了' : '參與民調！' }}
     </button>
   </div>
 </template>
 
 <script lang="ts">
-import {defineComponent, ref, watch} from "vue";
+import router from "@/router";
+import {userConfigKey} from "@/injection_keys";
+import {defineComponent, inject, ref, watch} from "vue";
 import {getDistricts, getPollCounts, getVillages, Team} from "@/data/database";
 import type {Area} from "@/data/database";
 
 export default defineComponent({
   name: "HomeView",
   setup() {
-    const term = ref<number>(9)
+    const userConfig = inject(userConfigKey, ref())
+    
+    const term = ref<number>(15)
     const countyId = ref<number>(0)
     const districtId = ref<number>(0)
     const villageId = ref<number>(0)
@@ -110,60 +114,79 @@ export default defineComponent({
     
     const teams = ref<Team[] | undefined>(undefined)
     
-    getPollCounts({
-      term: 15,
-      countyId: 0,
-      districtId: 0,
-      villageId: 0
-    }).then((data) => {
-      teams.value = data
-    })
+    function updatePollCounts() {
+      getPollCounts({
+        term: term.value,
+        countyId: countyId.value,
+        districtId: districtId.value,
+        villageId: villageId.value
+      }).then((data) => {
+        teams.value = data
+      })
+    }
+    
+    function toVotePage() {
+      if (userConfig.value) {
+        router.push("/vote")
+      } else {
+        router.push("/login")
+      }
+    }
     
     watch(term, () => {
       console.log('term', countyId.value)
-      countyId.value = 0
+      if (countyId.value !== 0) {
+        countyId.value = 0
+      } else {
+        updatePollCounts()
+      }
     })
     watch(countyId, async () => {
       console.log('district', districtId.value, countyId.value)
-      districtId.value = 0
+      if (districtId.value !== 0) {
+        districtId.value = 0
+      } else {
+        updatePollCounts()
+      }
       if (countyId.value !== 0) {
       	districts.value = [{id: 0, name: '全部'}].concat(await getDistricts(countyId.value))
       }
     })
     watch(districtId, async () => {
       console.log('village', villageId.value)
-      villageId.value = 0
+      if (villageId.value !== 0) {
+        villageId.value = 0
+      } else {
+        updatePollCounts()
+      }
       if (countyId.value !== 0 && districtId.value !== 0) {
         villages.value = [{id: 0, name: '全部'}].concat(await getVillages({districtId: districtId.value, countyId: countyId.value}))
       }
     })
-    watch(villageId, async () => {
-      console.log('update')
-      teams.value = await getPollCounts({
-        term: term.value,
-        countyId: countyId.value,
-        districtId: districtId.value,
-        villageId: villageId.value
-      })
-    })
-    return {term, countyId, districtId, villageId, terms, counties, districts, villages, teams}
+    watch(villageId, updatePollCounts, {immediate: true})
+    
+    return {
+      userConfig,
+      term, countyId, districtId, villageId,
+      terms, counties, districts, villages,
+      teams,
+      toVotePage
+    }
   }
 })
 </script>
 
 <style scoped>
 .home {
-  padding: 16px;
   display: grid;
   grid-template-columns: 1fr;
   grid-template-rows: auto;
   justify-content: center;
-  gap: 16px;
+  gap: 16px 0;
   overflow: auto;
 }
 
 .conditions {
-  grid-column: 1 / 3;
   border-radius: 24px;
   padding: 16px;
   background: white;
@@ -189,6 +212,13 @@ export default defineComponent({
   cursor: pointer;
   transition: background 0.2s;
 }
+.conditions > label > select:hover {
+  background: #3daa7d;
+}
+.conditions > label > select:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+}
 
 table {
   border-radius: 24px;
@@ -199,17 +229,23 @@ table {
 }
 
 .opinion-poll {
-  grid-column: 1 / 3;
-  font-size: 2em;
+  justify-self: center;
+  width: 50%;
   border-radius: 8px;
   border: none;
-  background: #42b983;
-  color: white;
   padding: 8px 16px;
+  background: #42b983;
+  display: block;
+  color: white;
+  font-size: 2em;
   cursor: pointer;
   transition: background 0.2s;
 }
-.opinion-poll:hover {
+.opinion-poll:enabled:hover {
   background: #3daa7d;
+}
+.opinion-poll:disabled {
+  background: #ccc;
+  cursor: not-allowed;
 }
 </style>
