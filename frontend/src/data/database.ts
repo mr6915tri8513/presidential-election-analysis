@@ -44,7 +44,7 @@ export async function getPollCounts(condition: Condition): Promise<Team[]> {
 
 export async function getDistricts(countyId: number): Promise<Area[]> {
   // return Promise.resolve([])
-  const response = await axios.post('/api/get_district_in_region', {countyId})
+  const response = await axios.post('/api/search_district', {countyId})
   console.log(response.data)
   return response.data
 }

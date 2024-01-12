@@ -4,8 +4,8 @@
       <span>篩選條件</span>
       <label>
         <select v-model="term">
-          <option v-for="term in [9, 10, 11, 12, 13, 14, 15]" :value="term">
-            第 {{ term }} 屆
+          <option v-for="t in [9, 10, 11, 12, 13, 14, 15]" :value="t">
+            第 {{ t }} 屆
           </option>
         </select>
       </label>
@@ -46,7 +46,7 @@
       </thead>
       <tbody>
       <tr v-for="team in teams" :key="team.party">
-        <td>{{ team.party }}</td>
+        <td>{{ team.party || '公民投票' }}</td>
         <td>{{ team.president }}</td>
         <td>{{ team.vicePresident }}</td>
         <td>{{ team.total }}</td>
@@ -105,24 +105,37 @@ export default defineComponent({
       {id: 27, name: '臺南縣'},
       {id: 28, name: '澎湖縣'},
     ] as const
-    const districts = ref<Area[]>([{id: 0, name: '全部'}, {id: 1, name: '中正區'}, {id: 2, name: '大同區'}])
-    const villages = ref<Area[]>([{id: 0, name: '全部'}, {id: 1, name: '松山里'}, {id: 2, name: '火山里'}])
+    const districts = ref<Area[]>([{id: 0, name: '全部'}])
+    const villages = ref<Area[]>([{id: 0, name: '全部'}])
     
     const teams = ref<Team[] | undefined>(undefined)
+    
+    getPollCounts({
+      term: 15,
+      countyId: 0,
+      districtId: 0,
+      villageId: 0
+    }).then((data) => {
+      teams.value = data
+    })
     
     watch(term, () => {
       console.log('term', countyId.value)
       countyId.value = 0
     })
     watch(countyId, async () => {
-      console.log('district', districtId.value)
+      console.log('district', districtId.value, countyId.value)
       districtId.value = 0
-      districts.value = [{id: 0, name: '全部'}].concat(await getDistricts(countyId.value))
+      if (countyId.value !== 0) {
+      	districts.value = [{id: 0, name: '全部'}].concat(await getDistricts(countyId.value))
+      }
     })
     watch(districtId, async () => {
       console.log('village', villageId.value)
       villageId.value = 0
-      villages.value = await getVillages({districtId: districtId.value, countyId: countyId.value})
+      if (countyId.value !== 0 && districtId.value !== 0) {
+        villages.value = [{id: 0, name: '全部'}].concat(await getVillages({districtId: districtId.value, countyId: countyId.value}))
+      }
     })
     watch(villageId, async () => {
       console.log('update')
