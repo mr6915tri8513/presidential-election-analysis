@@ -1,12 +1,9 @@
 <template>
-  <template v-if="userConfig !== undefined">
-    <header>
-      <span class="title" @click="toHomePage">歷屆總統大選資料</span>
-      <button @click="toUserPage">嗨 {{ (userConfig?.name ?? '訪客') || userConfig.id }}</button>
-    </header>
-    <router-view/>
-  </template>
-  <page-loading v-else/>
+  <header>
+    <span class="title" @click="toHomePage">歷屆總統大選資料</span>
+    <button @click="toUserPage">嗨 {{ (userConfig?.name ?? '訪客') || userConfig?.id }}</button>
+  </header>
+  <router-view/>
 </template>
 
 <script lang="ts">
@@ -14,7 +11,6 @@ import PageLoading from "@/components/PageLoading.vue";
 import router from "@/router";
 import {userConfigKey} from "@/injection_keys";
 import {defineComponent, provide, ref} from "vue";
-import {getUserConfig} from "@/data/database";
 import type {UserConfig} from "@/data/database";
 
 export default defineComponent({
@@ -22,11 +18,7 @@ export default defineComponent({
   components: {PageLoading},
   setup() {
     const path = ref("首頁")
-    const userConfig = ref<UserConfig | null | undefined>(undefined)
-    
-    getUserConfig().then((config) => {
-      userConfig.value = config
-    })
+    const userConfig = ref<UserConfig | null>(null)
     
     function toUserPage() {
       if (userConfig.value) {

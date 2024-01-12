@@ -20,8 +20,8 @@
 <script lang="ts">
 import router from "@/router";
 import {userConfigKey} from "@/injection_keys";
-import {defineComponent, inject, ref, watch} from "vue";
-import {getVoteTeams, apiVote} from "@/data/database";
+import {defineComponent, inject, ref} from "vue";
+import {checkEscape, getVoteTeams, apiVote} from "@/data/database";
 import type {VoteTeamInfo} from "@/data/database";
 
 export default defineComponent({
@@ -41,17 +41,21 @@ export default defineComponent({
       teamInfos.value = teams
     })
     
-    watch(teamId, (value) => {
-      console.log(value)
-    })
-    
     function vote() {
       if (!teamId.value || !userConfig.value) {
         return
       }
       
-      if (confirm('確定要投給這個政黨嗎？(不可更改)')) {
-        apiVote(userConfig.value.id, teamId.value).then(() => {
+      if (!confirm('確定要投給這個政黨嗎？(不可更改)')) {
+        return
+      }
+      
+      const password = prompt('確認密碼')
+      if (password && checkEscape(password)) {
+        apiVote(userConfig.value.id, password, teamId.value).then(() => {
+          if (userConfig.value && teamId.value) {
+            userConfig.value.voteTeam = teamId.value
+          }
           alert('投票成功')
           router.replace('/user')
         }).catch(() => {

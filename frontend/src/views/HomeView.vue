@@ -77,7 +77,7 @@ export default defineComponent({
     const districtId = ref<number>(0)
     const villageId = ref<number>(0)
     
-    const terms = [9, 10, 11, 12, 13, 14, 15, 16] as const
+    const terms = [9, 10, 11, 12, 13, 14, 15] as const
     const counties = [
       {id: 0, name: '全部'},
       {id: 1, name: '宜蘭縣'},

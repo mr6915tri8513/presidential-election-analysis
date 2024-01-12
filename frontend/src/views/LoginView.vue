@@ -64,7 +64,7 @@ export default defineComponent({
   name: "LoginView",
   setup() {
     const userConfig = inject(userConfigKey, ref())
-    const isLogin = ref(false)
+    const isLogin = ref(true)
     
     const id = ref('')
     const username = ref('')
@@ -133,7 +133,6 @@ export default defineComponent({
         sum += (id.value.charCodeAt(i) - 48) * (9 - i)
       }
       if (10 - sum % 10 !== id.value.charCodeAt(9) - 48) {
-        console.log(sum)
         alert('請輸入合法的身分證字號')
         return false
       }

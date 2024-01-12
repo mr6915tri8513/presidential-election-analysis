@@ -41,12 +41,22 @@ export type StationInfo = {
   village: string;
 }
 
+export function checkEscape(value: string) {
+  if (/['"\\;]/.test(value)) {
+    alert('請勿輸入單引號或雙引號')
+    return false
+  }
+  return true
+}
+
+/*
 export async function getUserConfig(): Promise<UserConfig | null> {
   // return Promise.resolve(null)
   const response = await axios.get("/api/users");
   console.log(response.data)
   return response.data;
 }
+*/
 
 export async function getPollCounts(condition: Condition): Promise<Team[]> {
   // return Promise.resolve([{president: '蔡英文', vicePresident: '賴清德', party: '民進黨', total: 100}, {president: '韓國瑜', vicePresident: '張善政', party: '中國國民黨', total: 50}, {president: '宋楚瑜', vicePresident: '余湘', party: '親民黨', total: 30}])
@@ -114,9 +124,15 @@ export async function getVoteTeams(): Promise<VoteTeamInfo[]> {
   return response.data
 }
 
-export async function apiVote(id: string, team: string): Promise<boolean> {
+export async function apiVote(id: string, password: string, team: string): Promise<boolean> {
   // return Promise.resolve(true)
-  const response = await axios.post('/api/vote', {id, team})
+  const response = await axios.post('/api/vote', {id, password, team})
   console.log(response.data)
-  return response.data[0]
+  return response.data[0].result
+}
+
+export async function apiDeleteUser(id: string, password: string): Promise<boolean> {
+  const response = await axios.post('/api/delete_user', {id, password})
+  console.log(response.data)
+  return response.data[0].result
 }
